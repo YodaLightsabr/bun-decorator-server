@@ -17,31 +17,31 @@ export class Server {
     }
 
     static get (route: Route) {
-        return (target, property, descriptor) => {
+        return <T extends TypedPropertyDescriptor<(req: Request) => void>>(target, property, descriptor: T) => {
             this.addRoute("get", route, descriptor.value);
         }
     }
 
     static post (route: Route) {
-        return (target, property, descriptor) => {
+        return <T extends TypedPropertyDescriptor<(req: Request) => void>>(target, property, descriptor: T) => {
             this.addRoute("post", route, descriptor.value);
         }
     }
 
     static put (route: Route) {
-        return (target, property, descriptor) => {
+        return <T extends TypedPropertyDescriptor<(req: Request) => void>>(target, property, descriptor: T) => {
             this.addRoute("put", route, descriptor.value);
         }
     }
 
     static patch (route: Route) {
-        return (target, property, descriptor) => {
+        return <T extends TypedPropertyDescriptor<(req: Request) => void>>(target, property, descriptor: T) => {
             this.addRoute("patch", route, descriptor.value);
         }
     }
 
     static delete (route: Route) {
-        return (target, property, descriptor) => {
+        return <T extends TypedPropertyDescriptor<(req: Request) => void>>(target, property, descriptor: T) => {
             this.addRoute("delete", route, descriptor.value);
         }
     }
@@ -50,6 +50,10 @@ export class Server {
         notFound: () => (target, property, descriptor) => {
             this.specialRoutes.notFound = descriptor.value;
         }
+    }
+
+    static async handle (req: Request, handler: Handler) {
+        return await handler.bind(new this)(req); // Allow for modifications in subclasses
     }
 
     static serve ({ serverOptions }: {
@@ -64,16 +68,12 @@ export class Server {
                 if (!handler) handler = this.config.notFound;
                 if (!handler) return;
 
-                const output = await handler.bind(new this)(req);
+                const output = await this.handle(req, handler);
 
                 if (output?.toResponse) return output.toResponse();
                 return output;
             },
         });
-    }
-
-    static Errors = class {
-        static NoHandler = class extends Error {}
     }
 }
 
