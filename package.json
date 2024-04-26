@@ -1,0 +1,9 @@
+{
+  "devDependencies": {
+    "bun-types": "^1.1.4"
+  },
+  "scripts": {
+    "dev": "bun --watch run index.ts",
+    "start": "bun run index.ts"
+  }
+}
